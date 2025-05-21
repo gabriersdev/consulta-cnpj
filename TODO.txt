@@ -1,0 +1,4 @@
+- Deixar o layout descente
+- Apresentar mais informações e organizadas de forma útil
+- Aplicar máscara para o cmapo de CNPJ
+- Organizar os componentes
