@@ -1,7 +1,12 @@
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
+import CnpjSearch from "./components/cnpjSearch/CnpjSearch.js";
 
 const Main = () => {
-  return <></>;
+  return (
+    <>
+      <CnpjSearch/>
+    </>
+  );
 }
 
 export default function App() {

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import PropTypes from "prop-types";
 
 const AnimatedComponent = ({ children }) => {
+  console.log(motion);
   return (
     <motion.div
       initial={{ opacity: 0, scale: 1, y: 10 }}

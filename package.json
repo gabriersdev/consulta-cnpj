@@ -6,7 +6,8 @@
   "homepage": "https://gabriersdev.github.io/consulta-cnpj",
   "scripts": {
     "dev": "vite",
-    "build": "npm run lint && vite build",
+    "build:lint": "npm run lint && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "lint:fix": "eslint src/**/*.jsx --fix",
     "preview": "vite preview",
