@@ -115,3 +115,23 @@ a:focus {
 .arial {
   font-family: 'Arial', sans-serif;
 }
+
+details {
+  position: relative;
+  padding-left: 0.75em;
+}
+
+details summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+details summary::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+}
+
+details[open] summary::before {
+  content: '-';
+}

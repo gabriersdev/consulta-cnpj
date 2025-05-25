@@ -1,7 +1,11 @@
-import React from "react";
-import { useState } from "react";
+import React, {useEffect} from "react";
+import {useState} from "react";
+import {Button} from '@headlessui/react'
+
 import axios from "axios";
 import moment from "moment";
+import $ from "jquery";
+import 'jquery-mask-plugin';
 
 const API_KEY = import.meta.env.VITE_IV_API_KEY;
 
@@ -39,10 +43,20 @@ function verifyCNPJ(cnpj: string): boolean {
 }
 
 export default function CnpjSearch() {
-  const [cnpj, setCnpj] = useState("70.972.302/0001-07");
+  const [cnpj, setCnpj] = useState("");
   const [erro, setErro] = useState("");
   const [dados, setDados] = useState<any>(null);
   const [carregando, setCarregando] = useState(false);
+
+  $(() => {
+    $('#cnpj').mask('00.000.000/0000-00');
+  })
+
+  const handleCNPJ = (value: string) => {
+    setCnpj(value);
+    if (!verifyCNPJ(value)) setErro("O CNPJ não está certo. Verifique...");
+    else setErro("");
+  }
 
   const buscarCnpj = async (e) => {
     e.preventDefault();
@@ -57,11 +71,9 @@ export default function CnpjSearch() {
       return;
     }
 
-    console.log(cnpjLimpo);
     setCarregando(true);
 
     try {
-      console.log("axios!");
       const resposta = await axios.get(`https://api.invertexto.com/v1/cnpj/${cnpjLimpo}?token=${API_KEY}`, {
         headers: {
           'Accept': 'application/json',
@@ -85,45 +97,67 @@ export default function CnpjSearch() {
   };
 
   return (
-    <main className="min-h-screen py-10 bg-gray-100 flex items-center justify-center p-4 ">
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-lg">
-        <h1 className="text-2xl font-bold mb-4 text-center">Consulta de CNPJ</h1>
+    <div className="bg-white min-h-[70vh] shadow-lg rounded-lg p-6 w-full max-w-lg">
+      <h1 className="text-[1.75rem] text-slate-700 font-semibold mb-8 text-center">Consulta de CNPJ</h1>
+      <form method={"POST"} action={"#"} className="flex gap-2 mb-2">
+        <input
+          type="text"
+          autoFocus={true}
+          id={"cnpj"}
+          value={cnpj}
+          onChange={(e) => handleCNPJ(e.target.value)}
+          placeholder="Digite o CNPJ"
+          className="block w-full rounded-lg border focus-headless bg-white/5 px-3 py-1.5 text-slate-800 focus:not-data-focus:outline-none data-focus:outline-2 data-focus:-outline-offset-2 data-focus:outline-white/25"
+        />
+        <Button onClick={buscarCnpj} type={"submit"} className="inline-flex items-center gap-2 rounded-md bg-gray-700 px-3 py-1.5  text-white shadow-inner shadow-white/10 focus:not-data-focus:outline-none data-focus:outline data-focus:outline-white data-hover:bg-gray-600 data-open:bg-gray-700">
+          Consultar
+        </Button>
+      </form>
 
-        <form method={"POST"} action={"#"} className="flex gap-2 mb-4">
-          <input
-            type="text"
-            value={cnpj}
-            onChange={(e) => setCnpj(e.target.value)}
-            placeholder="Digite o CNPJ"
-            className="flex-1 px-4 py-2 focus-headless border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={buscarCnpj}
-            type={"submit"}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Consultar
-          </button>
-        </form>
+      {erro && <p className="text-red-600 mb-4">{erro}</p>}
+      {carregando && <p className="text-gray-600 mt-1">Consultando...</p>}
 
-        {erro && <p className="text-red-600 mb-4">{erro}</p>}
-        {carregando && <p className="text-gray-600">Consultando...</p>}
+      {dados && (
+        <div className="mt-4 space-y-2 [&_strong]:block"><br/>
+          {[
+            {label: "Razão Social", value: dados.razao_social || "-"},
+            {label: "Nome Fantasia", value: dados.nome_fantasia || "Não informado"},
+            {label: "É MEI?", value: dados.mei?.optante_mei ? dados.mei.optante_mei === "S" ? "Sim" : "Não" : "Não informado"},
+            {label: "Porte", value: dados.porte || "-"},
+            {label: "Situação", value: dados.situacao?.nome || "-"},
+            {label: "Optante pelo simples?", value: dados.simples?.optante_simples ? dados.simples.optante_simples === "S" ? "Sim" : "Não" + (dados.simples?.data_exclusao ? ". Empresa excluída do Simples em " + moment(`${dados.simples.data_exclusao}T00:00:00`).format("DD/MM/YYYY") : "") : "Não informado"},
+            {label: "Data de Abertura", value: dados.data_inicio ? moment(dados.data_inicio + "T00:00:00-03:00").format("DD/MM/YYYY") : "-"},
+            {label: "Natureza Jurídica", value: dados.natureza_juridica || "-"},
+            {label: "Atividade Principal", value: dados.atividade_principal?.descricao || "-"},
+            {label: "Estado", value: dados.endereco?.uf || "-"},
+            {label: "Cidade", value: dados.endereco?.municipio || "-"},
+            {label: "Sócios", value: dados.socios?.length > 0 ? dados.socios.map(s => s).join(", ") : "Não informado"},
+            {label: "Capital social", value: dados.capital_social ? new Intl.NumberFormat("pt-BR", {style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 3}).format(dados.capital_social) : "-"}
+          ].map(({label, value}) => (
+            <p key={label}>
+              <strong>{label}:</strong> {value}
+            </p>
+          ))}
 
-        {dados && (
-          <div className="mt-4 space-y-2 [&_strong]:block">
-            <p><strong>Razão Social:</strong> {dados.razao_social || "-"}</p>
-            <p><strong>Nome Fantasia:</strong> {dados.nome_fantasia || "Não informado"}</p>
-            <p><strong>É MEI?</strong> {dados.mei?.optante_mei.replace(/N/, "Não").replace(/S/, "Sim") || "Não informado"}</p>
-            <p><strong>Situação:</strong> {dados.situacao?.nome || "-"}</p>
-            <p><strong>Data de Abertura:</strong> {moment(dados.data_inicio + "T00:00:00-03:00").format("DD/MM/YYYY")}</p>
-            <p><strong>Natureza Jurídica:</strong> {dados.natureza_juridica || "-"}</p>
-            <p><strong>Atividade Principal:</strong> {dados.atividade_principal?.descricao || "-"}</p>
-            <p><strong>Estado:</strong> {dados.endereco?.uf || "-"}</p>
-            <p><strong>Cidade:</strong> {dados.endereco?.municipio || "-"}</p>
-            <p><strong>Sócios:</strong> {dados.socios.length > 0 ? dados.socios.map(s => s).join(", ") : "Não informado"}</p>
+          {
+            !dados && (
+              <div className="mt-4 space-y-2 p-3 bg-red-200 border border-red-300 text-red-900 rounded text-center text-balance">
+                Nenhum dado correspondente ao CNPJ {cnpj} foi encontrado.
+              </div>
+            )
+          }
+
+          <br/>
+          <div>
+            <details className={"mt-2"}>
+              <summary><span className={"font-semibold text-blue-700"}>Ver todos os dados retornados pela API</span></summary>
+              <pre className={"text-wrap"}>
+                {JSON.stringify(dados, null, 2)}
+              </pre>
+            </details>
           </div>
-        )}
-      </div>
-    </main>
+        </div>
+      )}
+    </div>
   );
 }
