@@ -131,7 +131,7 @@ export default function CnpjSearch() {
             {label: "Atividade Principal", value: dados.atividade_principal?.descricao || "-"},
             {label: "Estado", value: dados.endereco?.uf || "-"},
             {label: "Cidade", value: dados.endereco?.municipio || "-"},
-            {label: "Sócios", value: dados.socios?.length > 0 ? dados.socios.map(s => Object.values(s).join(" - ")).join(", ") : "Não informado"},
+            {label: "Sócios", value: dados.socios?.length > 0 ? dados.socios.map(s => <div className={"block"}>Nome: {s.nome || "-"}. CPF/CNPJ: {s.cpf_cnpj || "-"}. Entrou na empresa em: {s.data_entrada ? moment(s.data_entrada).format("DD/MM/YYYY") : "-"}</div>) : "Não informado"},
             {label: "Capital social", value: dados.capital_social ? new Intl.NumberFormat("pt-BR", {style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 3}).format(dados.capital_social) : "-"}
           ].map(({label, value}) => (
             <p key={label}>
