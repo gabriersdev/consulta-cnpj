@@ -54,12 +54,15 @@ export default function CnpjSearch() {
 
   const handleCNPJ = (value: string) => {
     setCnpj(value);
+    // console.log(cnpj);
+
     if (!verifyCNPJ(value)) setErro("O CNPJ não está certo. Verifique...");
     else setErro("");
   }
 
   const buscarCnpj = async (e) => {
     e.preventDefault();
+    // console.log(cnpj);
 
     setErro("");
     setDados(null);
@@ -106,6 +109,7 @@ export default function CnpjSearch() {
           id={"cnpj"}
           value={cnpj}
           onChange={(e) => handleCNPJ(e.target.value)}
+          onPaste={(e) => handleCNPJ(e.target?.value)}
           placeholder="Digite o CNPJ"
           className="block w-full rounded-lg border focus-headless bg-white/5 px-3 py-1.5 text-slate-800 focus:not-data-focus:outline-none data-focus:outline-2 data-focus:-outline-offset-2 data-focus:outline-white/25"
         />
@@ -131,7 +135,7 @@ export default function CnpjSearch() {
             {label: "Atividade Principal", value: dados.atividade_principal?.descricao || "-"},
             {label: "Estado", value: dados.endereco?.uf || "-"},
             {label: "Cidade", value: dados.endereco?.municipio || "-"},
-            {label: "Sócios", value: dados.socios?.length > 0 ? dados.socios.map(s => <div className={"block"}>Nome: {s.nome || "-"}. CPF/CNPJ: {s.cpf_cnpj || "-"}. Entrou na empresa em: {s.data_entrada ? moment(s.data_entrada).format("DD/MM/YYYY") : "-"}</div>) : "Não informado"},
+            {label: "Sócios", value: dados.socios?.length > 0 ? dados.socios.map(s => <span className={"block mt-2"}>Nome: {s.nome || "-"}. CPF/CNPJ: {s.cpf_cnpj || "-"}. Entrou na empresa em: {s.data_entrada ? moment(s.data_entrada).format("DD/MM/YYYY") : "-"}</span>) : "Não informado"},
             {label: "Capital social", value: dados.capital_social ? new Intl.NumberFormat("pt-BR", {style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 3}).format(dados.capital_social) : "-"}
           ].map(({label, value}) => (
             <p key={label}>
