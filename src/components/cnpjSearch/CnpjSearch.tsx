@@ -82,7 +82,7 @@ export default function CnpjSearch() {
       })
 
       const resultado = resposta.data;
-      console.log(resultado);
+      // console.log(resultado);
 
       if (resultado.error) {
         setErro(resultado.message || "Erro ao buscar dados.");
