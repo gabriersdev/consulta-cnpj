@@ -1,16 +1,16 @@
-import React, {useEffect} from "react";
+import React from "react";
 import {useState} from "react";
 import {Button} from '@headlessui/react'
 
 import axios from "axios";
 import moment from "moment";
-import $ from "jquery";
-import 'jquery-mask-plugin';
+import {IMaskInput} from 'react-imask';
 
+// @ts-ignore
 const API_KEY = import.meta.env.VITE_IV_API_KEY;
 
 function verifyCNPJ(cnpj: string): boolean {
-  cnpj = cnpj.replace(/[^\d]+/g, '');
+  cnpj = cnpj.replace(/\D+/g, '');
   if (cnpj.length !== 14) return false;
   if (/^(\d)\1+$/.test(cnpj)) return false;
 
@@ -48,26 +48,20 @@ export default function CnpjSearch() {
   const [dados, setDados] = useState<any>(null);
   const [carregando, setCarregando] = useState(false);
 
-  $(() => {
-    $('#cnpj').mask('00.000.000/0000-00');
-  })
-
   const handleCNPJ = (value: string) => {
     setCnpj(value);
-    // console.log(cnpj);
-
     if (!verifyCNPJ(value)) setErro("O CNPJ não está certo. Verifique...");
     else setErro("");
   }
 
-  const buscarCnpj = async (e) => {
+  const buscarCnpj = async (e: any) => {
     e.preventDefault();
     // console.log(cnpj);
 
     setErro("");
     setDados(null);
 
-    const cnpjLimpo = cnpj.replace(/[^\d]+/g, "");
+    const cnpjLimpo = cnpj.replace(/\D+/g, "");
 
     if (!verifyCNPJ(cnpjLimpo)) {
       setErro("CNPJ inválido.");
@@ -85,14 +79,20 @@ export default function CnpjSearch() {
       })
 
       const resultado = resposta.data;
-      // console.log(resultado);
 
-      if (resultado.error) {
+      if (resultado.message === "Nenhum resultado encontrado.") {
+        setErro("O CNPJ não foi encontrado no banco de dados. Tente consultar no site da RFB.");
+        return;
+      } else if (resultado.error) {
         setErro(resultado.message || "Erro ao buscar dados.");
       } else {
         setDados(resultado);
       }
     } catch (e) {
+      if (e?.response?.data?.message === "Nenhum resultado encontrado.") {
+        setErro("O CNPJ não foi encontrado no banco de dados. Tente consultar no site da RFB.");
+        return;
+      }
       setErro("Erro ao conectar com a API.");
     } finally {
       setCarregando(false);
@@ -103,13 +103,15 @@ export default function CnpjSearch() {
     <div className="bg-white min-h-[70vh] shadow-lg rounded-lg p-6 w-full max-w-lg">
       <h1 className="text-[1.75rem] text-slate-700 font-semibold mb-8 text-center">Consulta de CNPJ</h1>
       <form method={"POST"} action={"#"} className="flex gap-2 mb-2">
-        <input
+        {/*@ts-ignore*/}
+        <IMaskInput
+          mask={"00.000.000/0000-00"}
           type="text"
           autoFocus={true}
           id={"cnpj"}
           value={cnpj}
           onChange={(e) => handleCNPJ(e.target.value)}
-          onPaste={(e) => handleCNPJ(e.target?.value)}
+          onPaste={(e) => handleCNPJ(e.clipboardData.getData('text'))}
           placeholder="Digite o CNPJ"
           className="block w-full rounded-lg border focus-headless bg-white/5 px-3 py-1.5 text-slate-800 focus:not-data-focus:outline-none data-focus:outline-2 data-focus:-outline-offset-2 data-focus:outline-white/25"
         />
